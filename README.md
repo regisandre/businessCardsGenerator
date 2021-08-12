@@ -3,10 +3,9 @@
 ## Usage
 
 ```sh
-./businessCardsGenerator.py "path_to_csv_file" "path_to_output_folder" "LLN/ANT/GR1/GR2"
+./businessCardsGenerator.py --file "/home/odoo/Desktop/business-cards_test.csv" -o "/home/odoo/Desktop/"
+./businessCardsGenerator.py -o "/home/odoo/Desktop/" --fullname "John Doe" --username "jodo" --jobTitle "Job Title" --phoneNumberExtension "4242" --mobilePhoneNumber "+32 496 XX XX XX" --location "LLN/ANT/GR1/GR2/GR3"
 ```
-<!-- ./businessCardsGenerator.py "John Doe" "jodo" "Job Title" "4242" "+32 496 XX XX XX" -->
-
 ## Future updates
-- Automatically create the destination directory if it does not exist
-- Individual use with a flag system like -i for individual and -f for file
+- Update the office location system by using a column in the CSV file or a parameter in the inline command
+- Update the phone numbers management to hide both type of phone number if it doesn't exist
