@@ -4,9 +4,10 @@
 import os, sys, re, csv, argparse
 from PIL import Image, ImageDraw, ImageFont
 
-# Define the phone number prefix and email domain
+# Define the phone number prefix, email domain and website
 voip_number_prefix = "+32 2 616 " # Phone number prefix
 email_domain = "odoo.com" # Email domain
+website_url = "www.odoo.com"
 
 # Company logo and icons
 try:
@@ -49,20 +50,21 @@ job_position_color = 135, 91, 124
 parser = argparse.ArgumentParser()
 parser.add_argument('--file', '-f', help='Path to input CSV file')
 parser.add_argument('--output-directory', '-o', help='Path to output folder', required=True)
-parser.add_argument('--fullname', '-fn', help="Full name", required=True)
-parser.add_argument('--username', '-u', help="Username", required=True)
-parser.add_argument('--jobposition', '-jp', help="Job title", required=True)
+parser.add_argument('--fullname', '-fn', help="Full name")
+parser.add_argument('--username', '-u', help="Username")
+parser.add_argument('--jobposition', '-jp', help="Job title")
 parser.add_argument('--voipnumberextension', '-pne', help="VoIP phone number extension without space (ex: 8269)")
 parser.add_argument('--mobilenumber', '-mn', help="Mobile phone number")
-parser.add_argument('--location', '-ol', help="Office location", choices=['LLN', 'ANT', 'GR1', 'GR2', 'GR3'], default='LLN', required=True)
-parser.add_argument('--website', '-w', help="Website URL", default='www.odoo.com')
+parser.add_argument('--location', '-ol', help="Office location", choices=['LLN', 'ANT', 'GR1', 'GR2', 'GR3'], default='LLN')
+parser.add_argument('--website', '-w', help="Website URL")
 arguments = parser.parse_args()
 
 # Function to generate business card
-def generate_business_card(full_name, username, job_position, voip_number, mobile_number, office_location, website):
+def generate_business_card(full_name, username, job_position, voip_number, mobile_number, office_location, website = website_url):
     # Global variables to store the work address
     global work_address_line_1
     global work_address_line_2
+    global work_address_line_3
     
     # Determine the work address based on the office location
     if(office_location == "LLN"):
@@ -85,9 +87,13 @@ def generate_business_card(full_name, username, job_position, voip_number, mobil
         work_address_line_1 = "Rue de Ramillies 1"
         work_address_line_2 = "1367 Grand-Rosière"
         work_address_line_3 = "BELGIUM"
+    elif(office_location == "LUX"):
+        work_address_line_1 = "Rue de l'industrie 13"
+        work_address_line_2 = "8399 Koerich"
+        work_address_line_3 = "Luxembourg"
 
     # Format username
-    username == f"{username}@{email_domain}"
+    username = f"{username}@{email_domain}"
 
     # Create image object and image drawer object
     img = Image.new('RGB', (1050, 600), color = (255, 255, 255))
@@ -99,29 +105,18 @@ def generate_business_card(full_name, username, job_position, voip_number, mobil
     business_card_image.text((255,148), job_position, font=job_position_font, fill=(job_position_color)) # Job title
     business_card_image.line([(255,197), (1050,197)], fill=job_position_color, width = 3) # https://www.geeksforgeeks.org/python-pil-imagedraw-draw-line/
 
-    # Contact information - icons and text
-    info = {
-        'voip_number': (phone_icon, voip_number),
-        'mobile_number': (mobile_icon, mobile_number),
-        'username': (mail_icon, username)
-    }
+    # Contact information
+    contact_info = [(phone_icon, voip_number), (mobile_icon, mobile_number), (mail_icon, username)]
 
-    for i, (icon, text) in info.items():
+    shift = 0
+    for icon, text in contact_info:
         if text != '/' and text != '':
-            img.paste(icon, (258, 225 + 34 * i), icon)
-            business_card_image.text((299, 222 + 34 * i), text, font=main_font, fill=(main_color))
+            img.paste(icon, (258, 225 + (34 * shift)), icon)
+            business_card_image.text((299, 222 + (34 * shift)), text, font=main_font, fill=(main_color))
+            shift += 1
 
     """
-    info = [    {        'icon': phone_icon,        'text': voip_number    },    {        'icon': mobile_icon,        'text': mobile_number    },    {        'icon': mail_icon,        'text': username    }]
-
-    for i, (icon, text) in enumerate(info.values()):
-    if text != '/' and text != '':
-        img.paste(icon, (258, 225 + 34 * i), icon)
-        business_card_image.text((299, 222 + 34 * i), text, font=main_font, fill=(main_color))
-    """
-    
-    """
-    # Contact informations
+    # Contact information
     if voip_number != '/' and voip_number != '':
         img.paste(phone_icon, (258,225), phone_icon)
         business_card_image.text((299,222), voip_number, font=main_font, fill=(main_color)) # Phone number
@@ -131,33 +126,19 @@ def generate_business_card(full_name, username, job_position, voip_number, mobil
             if username != '/' and username != '':
                 img.paste(mail_icon, (258, 293), mail_icon)
                 business_card_image.text((299,288), username, font=main_font, fill=(main_color)) # Email
+        elif username != '/' and username != '':
+                img.paste(mail_icon, (258, 259), mail_icon)
+                business_card_image.text((299,257), username, font=main_font, fill=(main_color)) # Email
     else:
         if mobile_number != '/' and mobile_number != '':
             img.paste(mobile_icon, (258,225), mobile_icon)
             business_card_image.text((299,222), mobile_number, font=main_font, fill=(main_color)) # Mobile phone number
             if username != '/' and username != '':
-                img.paste(mail_icon, (258, 293), mail_icon)
-                business_card_image.text((299,288), username, font=main_font, fill=(main_color)) # Email
+                img.paste(mail_icon, (258, 259), mail_icon)
+                business_card_image.text((299,257), username, font=main_font, fill=(main_color)) # Email
         elif username != '/' and username != '':
             img.paste(mail_icon, (258, 225), mail_icon)
             business_card_image.text((299,222), username, font=main_font, fill=(main_color)) # Email
-
-    """
-
-    """
-    # Former code
-    # Contact informations
-    img.paste(phone_icon, (258,225), phone_icon)
-    business_card_image.text((299,222), voip_number, font=main_font, fill=(main_color)) # Phone number
-
-    if(mobile_number != '/' and mobile_number != ''):
-        img.paste(mobile_icon, (258,259), mobile_icon)
-        business_card_image.text((299,257), mobile_number, font=main_font, fill=(main_color)) # Mobile phone number
-        img.paste(mail_icon, (258,293), mail_icon)
-        business_card_image.text((299,288), username, font=main_font, fill=(main_color)) # Email
-    else:
-        img.paste(mail_icon, (258,259), mail_icon)
-        business_card_image.text((299,257), username, font=main_font, fill=(main_color)) # Email
     """
 
     # Footer (with address and website)
@@ -194,9 +175,9 @@ if arguments.file:
                 voip_number = row[4]
                 mobile_number = row[5]
                 location = row[6]
-                website = row[7]
+                # website = row[7]
                 # Generate business card with extracted information
-                generate_business_card(full_name, username, job_position, voip_number, mobile_number, location, website)
+                generate_business_card(full_name, username, job_position, voip_number, mobile_number, location)
     # Close the CSV file
     csv_file.close()
 else:
